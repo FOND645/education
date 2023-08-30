@@ -1,12 +1,16 @@
-function solution(str) {
-    let N = +str
+var readline = require("readline");
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
 
-    let result = 0
+rl.on("line", function (data) {
+    let N = +data;
+
+    let result = 0;
     while (N > 1) {
-        N = N / 2
-        result++
+        N = N / 2;
+        result++;
     }
-    return result
-}
-
-console.log(solution(5))
+    console.log(result);
+});
