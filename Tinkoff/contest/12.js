@@ -1,29 +1,35 @@
-const inputData = `15
-4  7  9`
 
-function solution(inputData) {
-    const rawData = [...inputData.split(`\n`)]
-    const targetSum = + rawData[0]
-    const coinsNominal = rawData[1].split("  ").map(n => +n).sort()
+var readline = require("readline");
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
+let rawData = [];
 
-    let options = new Set()
-    options.add(1)
+rl.on("line", function (data) {
+    rawData.push(data)
+    if (rawData.length == 2) console.log(solution(rawData))
+});
 
-    function recursion(sum, coin) {
-        sum += coin
-        if (sum > targetSum) {
-            return
-        } 
-        options.add(sum)
-        if (sum == targetSum) return
-        coinsNominal.forEach(coin => {
-            recursion(sum, coin)
-        })
+
+
+function solution(rawData) {
+    const N = rawData[0]
+    const [A, B, C] = rawData[1].split(" ")
+    const dp = new Array(N + 1).fill(0);
+    dp[1] = 1;
+
+    for (let i = 2; i <= N; i++) {
+        if (i - A >= 1) dp[i] |= dp[i - A];
+        if (i - B >= 1) dp[i] |= dp[i - B];
+        if (i - C >= 1) dp[i] |= dp[i - C];
+        console.log(dp)
     }
-    coinsNominal.forEach(coin => {
-        recursion(1, coin)
-    })
-    return Array.from(options).length
-}
 
-console.log(solution(inputData))
+    let result = 0;
+    for (let i = 1; i <= N; i++) {
+        if (dp[i] === 1) result++;
+    }
+
+    return result;
+}

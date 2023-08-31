@@ -1,37 +1,57 @@
-function getMaxSumIncrease(n, k, numbers) {
-    let numCount = new Array(10).fill(0);
-    let maxDigit = 9;
+var readline = require("readline");
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
+let rawData = []
 
-    for (let num of numbers) {
-        while (num > 0) {
-            numCount[num % 10]++;
-            num = Math.floor(num / 10);
-        }
+rl.on("line", function (data) {
+    rawData.push(data)
+    if (rawData.length == 2) console.log(solution(rawData))
+});
+
+function solution(rawData) {
+    const [countOfNubers, countOfActions] = rawData[0].split(" ")
+    let nums = rawData[1]
+        .split(" ")
+        .map(Number)
+        .sort()
+    const lastSum = nums.reduce((sum, num) => sum + num, 0)
+    console.log(nums)
+    let index
+    for (let i = 1; i <= countOfActions; i++) {        
+        index = findMaxProfit(nums)
+        console.log(index)
+        console.log(nums)
+        nums[index] = replaceTo9(nums[index])
     }
-
-    let totalIncrease = 0;
-
-    for (let i = 0; i < k; i++) {
-        while (numCount[maxDigit] === 0 && maxDigit > 0) {
-            maxDigit--;
-        }
-
-        if (maxDigit === 0) {
-            break;
-        }
-
-        totalIncrease += maxDigit;
-        numCount[maxDigit]--;
-    }
-
-    return totalIncrease;
+    console.log(nums)
+    const newSum = nums.reduce((sum, num) => sum + num, 0)
+    return newSum - lastSum
+    
 }
 
-// Пример использования
-const input = "5 2\n1 2 1 3 4";
-const lines = input.split("\n");
-const [n, k] = lines[0].split(" ").map(Number);
-const numbers = lines[1].split(" ").map(Number);
+function findMaxProfit(arr){
+    let max = 0
+    let index
+    arr.forEach((num, ind) => {
+        let newNum = num.toString().split("")
+        for (let i = 0; i < newNum.length; i++) {
+            if (newNum[i] !== "9") {newNum[i] = "9"; break}
+        }
+        newNum = +newNum.join("")
+        if (max < newNum - num) {
+            max = newNum
+            index = ind
+        }
+    })
+    return index
+}
 
-const result = getMaxSumIncrease(n, k, numbers);
-console.log(result);
+function replaceTo9 (num) {
+    num = num.toString().split("")
+    for (let i = 0; i < num.length; i++) {
+        if (num[i] !== "9") {num[i] = "9"; break}
+    }
+    return +num.join("")
+}
