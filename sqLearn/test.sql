@@ -1,0 +1,1 @@
+INSERT INTO actions (id, action, index) VALUES (?, ?, ?)
