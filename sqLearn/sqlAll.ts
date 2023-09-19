@@ -13,15 +13,15 @@ db.all('SELECT ("defect_id") FROM "defects_in_blocks" WHERE "block_id" = "16"', 
     if (error) {
         console.log(error)
     } else {
-        let defects = []
-        db.serialize(() => {
-            result.forEach(res => {
-                db.all(`SELECT ("description") FROM "defects" WHERE "id" = ?`, [res.defect_id], (error, result) => {
-                    console.log(result)
-                    const end = new Date().getTime()
-                    console.log(end - start)
-                })
-            })
+        let mappedResult = result.map(res => res.defect_id)
+        db.all(`SELECT ("description") FROM "defects" WHERE "id" IN (${mappedResult.join(", ")})`, (error, result) => {
+            if (error) {
+                console.log(error)
+            } else {
+                console.log(result)
+                const end = new Date().getTime()
+                console.log(end - start)
+            }
         })
     }
 })

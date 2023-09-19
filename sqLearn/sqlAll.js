@@ -10,15 +10,16 @@ db.all('SELECT ("defect_id") FROM "defects_in_blocks" WHERE "block_id" = "16"', 
         console.log(error);
     }
     else {
-        var defects = [];
-        db.serialize(function () {
-            result.forEach(function (res) {
-                db.all("SELECT (\"description\") FROM \"defects\" WHERE \"id\" = ?", [res.defect_id], function (error, result) {
-                    console.log(result);
-                    var end = new Date().getTime();
-                    console.log(end - start);
-                });
-            });
+        var mappedResult = result.map(function (res) { return res.defect_id; });
+        db.all("SELECT (\"description\") FROM \"defects\" WHERE \"id\" IN (".concat(mappedResult.join(", "), ")"), function (error, result) {
+            if (error) {
+                console.log(error);
+            }
+            else {
+                console.log(result);
+                var end = new Date().getTime();
+                console.log(end - start);
+            }
         });
     }
 });
