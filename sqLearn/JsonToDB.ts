@@ -77,7 +77,11 @@ const JSONdatabse: dataBaseJSON = {
 
 let db = new sqlite.Database(dbPath);
 
+let total = 0
+let complite = 0
+
 db.serialize(() => {
+    total++
     db.run(
         `CREATE TABLE "materials" (
         "id"	INTEGER NOT NULL UNIQUE,
@@ -86,6 +90,8 @@ db.serialize(() => {
         PRIMARY KEY("id" AUTOINCREMENT)
     );`,
         (err) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (err) console.log(`Ошибка при создании БД`, err);
         }
     );
@@ -99,9 +105,11 @@ db.serialize(() => {
             materialID = materialsIDs.count;
             materialsIDs.count++;
         }
-
+        total++
         db.run(`INSERT INTO materials (id, name, unit) VALUES (?, ?, ?)`, [materialID, name, unit], (error) => {
             if (error) {
+                complite++
+                console.log(`${complite} из ${total}`)
                 console.log(`Ошибка при добавлении в бд`, error);
             } else {
                 console.log(`Добавлен материал ID:${materialID}, name:${name}`);
@@ -110,6 +118,7 @@ db.serialize(() => {
     });
 
     // Создаем базу изделий
+    total++
     db.run(
         `CREATE TABLE "devices" (
         "id"	INTEGER NOT NULL UNIQUE,
@@ -118,6 +127,8 @@ db.serialize(() => {
         PRIMARY KEY ("id" AUTOINCREMENT)
     );`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log(error);
             } else {
@@ -127,6 +138,7 @@ db.serialize(() => {
     );
 
     // Создаем базу блоков
+    total++
     db.run(
         `CREATE TABLE "blocks" (
         "id"	INTEGER NOT NULL UNIQUE,
@@ -135,6 +147,8 @@ db.serialize(() => {
         PRIMARY KEY ("id" AUTOINCREMENT)
     );`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log(error);
             } else {
@@ -144,6 +158,7 @@ db.serialize(() => {
     );
 
     // Создаем таблицу связей изделий и блоков
+    total++
     db.run(
         `CREATE TABLE blocks_in_devices (
         "device_id" INTEGER NOT NULL,
@@ -153,6 +168,8 @@ db.serialize(() => {
         FOREIGN KEY (block_id) REFERENCES blocks(id)
     )`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log(error);
             } else {
@@ -172,7 +189,11 @@ db.serialize(() => {
             deviceID = devicesIDs.count;
             devicesIDs.count++;
         }
+        total++
         db.run("INSERT INTO devices (id, name, decimal) VALUES (?, ?, ?)", [deviceID, name, decimal], (error) => {
+
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при добавлении устройства", error);
             } else {
@@ -185,7 +206,12 @@ db.serialize(() => {
         blocksIDs[key] = blocksIDs.count;
         deviceBlockID = blocksIDs.count;
         blocksIDs.count++;
+
+        total++
         db.run("INSERT INTO blocks (id, name, decimal) VALUES (?, ?, ?)", [deviceBlockID, name, decimal], (error) => {
+
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при добавлении устройства в блоки", error);
             } else {
@@ -194,7 +220,11 @@ db.serialize(() => {
         });
 
         // Создаем связь
+        total++
         db.run("INSERT INTO blocks_in_devices (device_id, block_id) VALUES (?, ?)", [deviceID, deviceBlockID], (error) => {
+
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при создании связи Устройство - устройство в блоках", error);
             } else {
@@ -208,7 +238,12 @@ db.serialize(() => {
             let blockID: undefined | number;
             if (blocksIDs.hasOwnProperty(key)) {
                 blockID = blocksIDs[key];
+
+                total++
                 db.run("INSERT INTO blocks_in_devices (device_id, block_id) VALUES (?, ?)", [deviceID, blockID], (error) => {
+
+                    complite++
+                    console.log(`${complite} из ${total}`)
                     if (error) {
                         console.log("Ошибка при добавлении существующего блока", error);
                     } else {
@@ -219,14 +254,24 @@ db.serialize(() => {
                 blocksIDs[key] = blocksIDs.count;
                 blockID = blocksIDs.count;
                 blocksIDs.count++;
+
+                total++
                 db.run("INSERT INTO blocks (id, name, decimal) VALUES (?, ?, ?)", [blockID, name, decimal], (error) => {
+
+                    complite++
+                    console.log(`${complite} из ${total}`)
                     if (error) {
                         console.log("Ошибка при добавлении нового блока", error);
                     } else {
                         console.log(`Добавлен блок ID:${blockID}, name:${name}`);
                     }
                 });
+
+                total++
                 db.run("INSERT INTO blocks_in_devices (device_id, block_id) VALUES (?, ?)", [deviceID, blockID], (error) => {
+
+                    complite++
+                    console.log(`${complite} из ${total}`)
                     if (error) {
                         console.log("Ошибка при создании связи", error);
                     } else {
@@ -238,15 +283,21 @@ db.serialize(() => {
     });
 
     // Создаем базу неисправностей
+
+    total++
     db.run(
         `CREATE TABLE defects (
         "id" INTEGER NOT NULL UNIQUE,
         "description" TEXT NOT NULL,
         "defect" TEXT,
         "solution" TEXT,
+        "block_id" INTEGER NOT NULL,
+        FOREIGN KEY (block_id) REFERENCES blocks(id),
         PRIMARY KEY ("id" AUTOINCREMENT)
     )`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при создании базы дефектов", error);
             } else {
@@ -256,14 +307,20 @@ db.serialize(() => {
     );
 
     // Создаем базу действий
+
+    total++
     db.run(
         `CREATE TABLE actions (
         "id" INTEGER NOT NULL UNIQUE,
         "action" TEXT NOT NULL,
         "index" TEXT NOT NULL,
+        "defect_id" INTEGER NOT NULL,
+        FOREIGN KEY (defect_id) REFERENCES defects(id),
         PRIMARY KEY ("id" AUTOINCREMENT)
     )`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при создании базы действий", error);
             } else {
@@ -273,6 +330,8 @@ db.serialize(() => {
     );
 
     // Создаем таблицу связи ДЕЙСТВИЕ - МАТЕРИАЛЫ
+
+    total++
     db.run(
         `CREATE TABLE materials_in_actions (
         "action_id" INTEGER NOT NULL,
@@ -283,6 +342,8 @@ db.serialize(() => {
         FOREIGN KEY (material_id) REFERENCES materials(id)
     )`,
         (error) => {
+            complite++
+            console.log(`${complite} из ${total}`)
             if (error) {
                 console.log("Ошибка при создании таблицы связи ДЕЙСТВИЕ - МАТЕРИАЛЫ", error);
             } else {
@@ -292,40 +353,40 @@ db.serialize(() => {
     );
 
     // Создаем таблицу связи НЕИСПРАВНОСТЬ - ДЕЙСТВИЯ
-    db.run(
-        `CREATE TABLE actions_in_defects (
-        "defect_id" INTEGER NOT NULL,
-        "action_id" INTEGER NOT NULL,
-        PRIMARY KEY (action_id, defect_id),
-        FOREIGN KEY (action_id) REFERENCES actions(id),
-        FOREIGN KEY (defect_id) REFERENCES defects(id)
-    )`,
-        (error) => {
-            if (error) {
-                console.log("Ошибка при создании таблицы связи ДЕЙСТВИЕ - МАТЕРИАЛЫ", error);
-            } else {
-                console.log("Создана таблица связи ДЕЙСТВИЕ - МАТЕРИАЛЫ");
-            }
-        }
-    );
+    // db.run(
+    //     `CREATE TABLE actions_in_defects (
+    //     "defect_id" INTEGER NOT NULL,
+    //     "action_id" INTEGER NOT NULL,
+    //     PRIMARY KEY (action_id, defect_id),
+    //     FOREIGN KEY (action_id) REFERENCES actions(id),
+    //     FOREIGN KEY (defect_id) REFERENCES defects(id)
+    // )`,
+    //     (error) => {
+    //         if (error) {
+    //             console.log("Ошибка при создании таблицы связи ДЕЙСТВИЕ - МАТЕРИАЛЫ", error);
+    //         } else {
+    //             console.log("Создана таблица связи ДЕЙСТВИЕ - МАТЕРИАЛЫ");
+    //         }
+    //     }
+    // );
 
     // Создаем таблицу связи БЛОК - НЕИСПРАВНОСТИ
-    db.run(
-        `CREATE TABLE defects_in_blocks (
-        "block_id" INTEGER NOT NULL,
-        "defect_id" INTEGER NOT NULL,
-        PRIMARY KEY (block_id, defect_id),
-        FOREIGN KEY (block_id) REFERENCES blocks(id),
-        FOREIGN KEY (defect_id) REFERENCES defects(id)
-    )`,
-        (error) => {
-            if (error) {
-                console.log("Ошибка при создании таблицы связи БЛОКИ - НЕИСПРАВНОСТИ", error);
-            } else {
-                console.log("Создана таблица связи БЛОКИ - НЕИСПРАВНОСТИ");
-            }
-        }
-    );
+    // db.run(
+    //     `CREATE TABLE defects_in_blocks (
+    //     "block_id" INTEGER NOT NULL,
+    //     "defect_id" INTEGER NOT NULL,
+    //     PRIMARY KEY (block_id, defect_id),
+    //     FOREIGN KEY (block_id) REFERENCES blocks(id),
+    //     FOREIGN KEY (defect_id) REFERENCES defects(id)
+    // )`,
+    //     (error) => {
+    //         if (error) {
+    //             console.log("Ошибка при создании таблицы связи БЛОКИ - НЕИСПРАВНОСТИ", error);
+    //         } else {
+    //             console.log("Создана таблица связи БЛОКИ - НЕИСПРАВНОСТИ");
+    //         }
+    //     }
+    // );
 
     // Заполняем таблицу дефектов
     JSONdatabse.defects.forEach((Defect) => {
@@ -342,20 +403,24 @@ db.serialize(() => {
         }
 
         // Добавляем неисправность
-        db.run(`INSERT INTO defects (id, description, defect, solution) VALUES (?, ?, ?, ?)`, [defectID, description, defect, solution], (error) => {
+
+        total++
+        db.run(`INSERT INTO defects (id, description, defect, solution, block_id) VALUES (?, ?, ?, ?, ?)`, [defectID, description, defect, solution, blockID], (error) => {
             if (error) {
+                complite++
+                console.log(`${complite} из ${total}`)
                 console.log("Ошибка при добавлении неисправности", error);
             } else {
                 console.log(`Добавлена неисправность ID:${defectID}, name:${description}`);
             }
         });
-        db.run(`INSERT INTO defects_in_blocks (block_id, defect_id) VALUES (?, ?)`, [blockID, defectID], (error) => {
-            if (error) {
-                console.log("Ошибка при связывании БЛОК - НЕИСПРАВНОЕСТЬ", error);
-            } else {
-                console.log(`Добавлена связь ${defectID} - ${blockID}`);
-            }
-        });
+        // db.run(`INSERT INTO defects_in_blocks (block_id, defect_id) VALUES (?, ?)`, [blockID, defectID], (error) => {
+        //     if (error) {
+        //         console.log("Ошибка при связывании БЛОК - НЕИСПРАВНОЕСТЬ", error);
+        //     } else {
+        //         console.log(`Добавлена связь ${defectID} - ${blockID}`);
+        //     }
+        // });
         actions.forEach((Action) => {
             const { index, action, materials } = Action;
             const actionKey = Action.key;
@@ -367,27 +432,35 @@ db.serialize(() => {
                 actionID = actionsIDs.count;
                 actionsIDs.count++;
             }
-            db.run(`INSERT INTO actions ("id", "action", "index") VALUES (?, ?, ?)`, [actionID, action, index], (error) => {
+
+            total++
+            db.run(`INSERT INTO actions ("id", "action", "index", "defect_id") VALUES (?, ?, ?, ?)`, [actionID, action, index, defectID], (error) => {
                 if (error) {
+                    complite++
+                    console.log(`${complite} из ${total}`)
                     console.log("Ошибка при добавлении действия", error);
                 } else {
                     console.log(`Добавлено действие ID:${actionID}, name:${action}`);
                 }
             });
-            db.run(`INSERT INTO actions_in_defects (action_id, defect_id) VALUES (?, ?)`, [actionID, defectID], (error) => {
-                if (error) {
-                    console.log("Ошибка при связывании НЕИСПРАВНОЕСТЬ - ДЕЙСТВИЕ", error);
-                } else {
-                    console.log(`Добавлена связь ${actionID} - ${blockID}`);
-                }
-            });
+            // db.run(`INSERT INTO actions_in_defects (action_id, defect_id) VALUES (?, ?)`, [actionID, defectID], (error) => {
+            //     if (error) {
+            //         console.log("Ошибка при связывании НЕИСПРАВНОЕСТЬ - ДЕЙСТВИЕ", error);
+            //     } else {
+            //         console.log(`Добавлена связь ${actionID} - ${blockID}`);
+            //     }
+            // });
             materials.forEach((Material) => {
                 const { count, materialKey, key } = Material;
                 const materialID = materialsIDs[materialKey];
+
+                total++
                 db.run(
                     `INSERT INTO materials_in_actions (action_id, material_id, count) VALUES (?, ?, ?)`,
                     [actionID, materialID, count],
                     (error) => {
+                        complite++
+                        console.log(`${complite} из ${total}`)
                         if (error) {
                             console.log("Ошибка при связывании ДЕЙСТВИЕ - МАТЕРИАЛ", error);
                         } else {
@@ -400,12 +473,16 @@ db.serialize(() => {
     });
 
     // Создаем БД организаций
+
+    total++
     db.run(`CREATE TABLE "organiztions" (
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL,
         "city"	TEXT NOT NULL,
         PRIMARY KEY("id" AUTOINCREMENT)
     );`, (err) => {
+        complite++
+        console.log(`${complite} из ${total}`)
         if (err) {
             console.log(`Ошибка создания таблицы организаций`);
         } else {
@@ -414,6 +491,8 @@ db.serialize(() => {
     })
 
     // Создаем БД контрактов
+
+    total++
     db.run(`CREATE TABLE "contracts" (
         "id"	INTEGER NOT NULL UNIQUE,
         "number"	TEXT NOT NULL,
@@ -422,6 +501,8 @@ db.serialize(() => {
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY (organiztion_id) REFERENCES organiztions(id)
     );`, (err) => {
+        complite++
+        console.log(`${complite} из ${total}`)
         if (err) {
             console.log(`Ошибка создания таблицы контрактов`);
         } else {
@@ -430,6 +511,8 @@ db.serialize(() => {
     })
 
     // Создаем БД устройств в ремонте
+
+    total++
     db.run(`CREATE TABLE "repair_devices" (
         "id"	INTEGER NOT NULL UNIQUE,
         "contract_id"	INTEGER NOT NULL,
@@ -442,6 +525,8 @@ db.serialize(() => {
         FOREIGN KEY ("contract_id") REFERENCES contracts(id),
         FOREIGN KEY ("device_id") REFERENCES defects(id)
     );`, (err) => {
+        complite++
+        console.log(`${complite} из ${total}`)
         if (err) {
             console.log(`Ошибка создания таблицы устройств в ремонте`);
         } else {
@@ -450,6 +535,8 @@ db.serialize(() => {
     })
 
     // Создаем БД блоков в ремонте
+
+    total++
     db.run(`CREATE TABLE "repair_blocks" (
         "id"	INTEGER NOT NULL UNIQUE,
         "block_id"	INTEGER NOT NULL,
@@ -458,6 +545,8 @@ db.serialize(() => {
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY ("block_id") REFERENCES blocks(id)
     );`, (err) => {
+        complite++
+        console.log(`${complite} из ${total}`)
         if (err) {
             console.log(`Ошибка создания таблицы блоков в ремонте`);
         } else {
@@ -466,6 +555,8 @@ db.serialize(() => {
     })
 
     // Создаем таблицу связи БЛОК в ремонте - НЕИСПРАВНОСТИ
+
+    total++
     db.run(
         `CREATE TABLE "defects_in_repair" (
             "repair_blocks_id" INTEGER NOT NULL,
@@ -474,6 +565,8 @@ db.serialize(() => {
             FOREIGN KEY (repair_blocks_id) REFERENCES repair_blocks(id),
             FOREIGN KEY (defect_id) REFERENCES defects(id)            
     )`, (err) => {
+        complite++
+        console.log(`${complite} из ${total}`)
         if (err) {
             console.log(`Ошибка создания таблицы связи БЛОК в ремонте - НЕИСПРАВНОСТИ`);
         } else {
@@ -483,7 +576,12 @@ db.serialize(() => {
 
     organiztionsIDs.forEach((Organization, id) => {
         const { name, city } = Organization
+
+        total++
         db.run('INSERT INTO organiztions ("id", "name", "city") VALUES (?, ?, ?)', [id, name, city], (err) => {
+
+            complite++
+            console.log(`${complite} из ${total}`)
             if (err) {
                 console.log(`Ошибка добавления организации ${id} ${name} ${city}`, err);
             } else {
@@ -505,7 +603,12 @@ db.serialize(() => {
         }
         let organiztionID = organiztionsIDs.findIndex(org => org.name === organizationName)
 
+
+        total++
         db.run(`INSERT INTO contracts ("id", "number", "date", "organiztion_id") VALUES (?, ?, ?, ?)`, [contractID, contractNumber, contractDate, organiztionID], (err) => {
+
+            complite++
+            console.log(`${complite} из ${total}`)
             if (err) {
                 console.log(`Ошибка добавления контракта ${contractID} ${contractNumber} ${organiztionID}`, err);
             } else {
@@ -513,7 +616,7 @@ db.serialize(() => {
             }
         })
         repairBase.forEach(RepairDevice => {
-            const {changeTime, createTime, deviceKey, repairNumber, serialNumber, subDevices} = RepairDevice
+            const { changeTime, createTime, deviceKey, repairNumber, serialNumber, subDevices } = RepairDevice
             const RepairDeviceKey = RepairDevice.key
             const deviceID = devicesIDs[deviceKey]
             let repairDeviceID: undefined | number;
@@ -525,17 +628,21 @@ db.serialize(() => {
                 repairDevicesIDs.count++;
             }
 
-            db.run(`INSERT INTO repair_devices ("id", "contract_id", "device_id", "create_time", "change_time", "repair_number", "serial_number") VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-            [repairDeviceID, contractID, deviceID, createTime, changeTime, repairNumber, serialNumber],
-            (err) => {
-                if (err) {
-                    console.log(`Ошибка добавления устройства ремонта ${repairDeviceID}, ${contractID}, ${deviceID}, ${createTime}, ${changeTime}, ${repairNumber}, ${serialNumber}`, err);
-                } else {
-                    console.log(`Добавлено устройство ремонта ${repairNumber} ${repairDevicesIDs} ${deviceID} ${serialNumber}`)
-                }
-            })
+
+            total++
+            db.run(`INSERT INTO repair_devices ("id", "contract_id", "device_id", "create_time", "change_time", "repair_number", "serial_number") VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [repairDeviceID, contractID, deviceID, createTime, changeTime, repairNumber, serialNumber],
+                (err) => {
+                    complite++
+                    console.log(`${complite} из ${total}`)
+                    if (err) {
+                        console.log(`Ошибка добавления устройства ремонта ${repairDeviceID}, ${contractID}, ${deviceID}, ${createTime}, ${changeTime}, ${repairNumber}, ${serialNumber}`, err);
+                    } else {
+                        console.log(`Добавлено устройство ремонта ${repairNumber} ${repairDevicesIDs} ${deviceID} ${serialNumber}`)
+                    }
+                })
             subDevices.forEach(Block => {
-                const {subDeviceKey, serialNumber, count, defects} = Block
+                const { subDeviceKey, serialNumber, count, defects } = Block
                 const blockKey = Block.key
                 const blockID = blocksIDs[subDeviceKey]
                 let repairBlockID: undefined | number;
@@ -546,30 +653,38 @@ db.serialize(() => {
                     repairBlockID = repairBlocksIDs.count;
                     repairBlocksIDs.count++;
                 }
+
+                total++
                 db.run(`INSERT INTO repair_blocks ("id", "block_id", "serial_number", "count") VALUES (?, ?, ?, ?)`,
-                [repairBlockID, blockID, serialNumber, count],
-                (err) => {
-                    if (err) {
-                        console.log(`Ошибка добавления блока ремонта ${repairBlockID}, ${blockID}, ${serialNumber}, ${count}`, err);
-                    } else {
-                        console.log(`Добавлено блока ремонта ${blockID} ${serialNumber}`)
-                    }
-                })
-                defects.forEach(Defect => {
-                    const defectID = defectsIDs[Defect]
-                    db.run(`INSERT INTO defects_in_repair ("repair_blocks_id", "defect_id") VALUES (?, ?)`,
-                    [repairBlockID, defectID],
+                    [repairBlockID, blockID, serialNumber, count],
                     (err) => {
+                        complite++
+                        console.log(`${complite} из ${total}`)
                         if (err) {
-                            console.log(`Ошибка добавления связи БЛОК ${repairBlockID} - НЕИСПРАВНОСТЬ ${defectID}`, err);
+                            console.log(`Ошибка добавления блока ремонта ${repairBlockID}, ${blockID}, ${serialNumber}, ${count}`, err);
                         } else {
-                            console.log(`Добавлена связь БЛОК ${repairBlockID} - НЕИСПРАВНОСТЬ ${defectID}`)
+                            console.log(`Добавлено блока ремонта ${blockID} ${serialNumber}`)
                         }
                     })
+                defects.forEach(Defect => {
+                    const defectID = defectsIDs[Defect]
+
+                    total++
+                    db.run(`INSERT INTO defects_in_repair ("repair_blocks_id", "defect_id") VALUES (?, ?)`,
+                        [repairBlockID, defectID],
+                        (err) => {
+                            complite++
+                            console.log(`${complite} из ${total}`)
+                            if (err) {
+                                console.log(`Ошибка добавления связи БЛОК ${repairBlockID} - НЕИСПРАВНОСТЬ ${defectID}`, err);
+                            } else {
+                                console.log(`Добавлена связь БЛОК ${repairBlockID} - НЕИСПРАВНОСТЬ ${defectID}`)
+                            }
+                        })
                 })
             })
         })
     })
 
-    db.all(`SELECT `)
+    // db.all(`SELECT `)
 });
