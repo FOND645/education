@@ -30,6 +30,7 @@ var defectsIDs = {
 var actionsIDs = {
     count: 0,
 };
+var noteID = -1;
 var organiztionsIDs = [
     {
         name: "144 БТРЗ",
@@ -68,7 +69,7 @@ var total = 0;
 var complite = 0;
 db.serialize(function () {
     total++;
-    db.run("CREATE TABLE \"materials\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"unit\"\tTEXT NOT NULL,\n        PRIMARY KEY(\"id\" AUTOINCREMENT)\n    );", function (err) {
+    db.run("CREATE TABLE \"materials\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"unit\"\tTEXT NOT NULL,\n        \"meta\" TEXT,\n        PRIMARY KEY(\"id\" AUTOINCREMENT)\n    );", function (err) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (err)
@@ -99,7 +100,7 @@ db.serialize(function () {
     });
     // Создаем базу изделий
     total++;
-    db.run("CREATE TABLE \"devices\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"decimal\"\tTEXT NOT NULL,\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    );", function (error) {
+    db.run("CREATE TABLE \"devices\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"decimal\"\tTEXT NOT NULL,\n        \"meta\" TEXT,\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    );", function (error) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (error) {
@@ -111,7 +112,7 @@ db.serialize(function () {
     });
     // Создаем базу блоков
     total++;
-    db.run("CREATE TABLE \"blocks\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"decimal\"\tTEXT NOT NULL,\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    );", function (error) {
+    db.run("CREATE TABLE \"blocks\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"decimal\"\tTEXT NOT NULL,\n        \"is_leading\"   INTEGER,\n        \"meta\" TEXT,\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    );", function (error) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (error) {
@@ -162,7 +163,7 @@ db.serialize(function () {
         deviceBlockID = blocksIDs.count;
         blocksIDs.count++;
         total++;
-        db.run("INSERT INTO blocks (id, name, decimal) VALUES (?, ?, ?)", [deviceBlockID, name, decimal], function (error) {
+        db.run("INSERT INTO blocks (id, name, decimal, is_leading) VALUES (?, ?, ?, ?)", [deviceBlockID, name, decimal, 1], function (error) {
             complite++;
             console.log("".concat(complite, " \u0438\u0437 ").concat(total));
             if (error) {
@@ -233,7 +234,7 @@ db.serialize(function () {
     });
     // Создаем базу неисправностей
     total++;
-    db.run("CREATE TABLE defects (\n        \"id\" INTEGER NOT NULL UNIQUE,\n        \"description\" TEXT NOT NULL,\n        \"defect\" TEXT,\n        \"solution\" TEXT,\n        \"block_id\" INTEGER NOT NULL,\n        FOREIGN KEY (block_id) REFERENCES blocks(id),\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    )", function (error) {
+    db.run("CREATE TABLE defects (\n        \"id\" INTEGER NOT NULL UNIQUE,\n        \"description\" TEXT NOT NULL,\n        \"defect\" TEXT,\n        \"solution\" TEXT,\n        \"block_id\" INTEGER NOT NULL,\n        \"meta\" TEXT,\n        FOREIGN KEY (block_id) REFERENCES blocks(id),\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    )", function (error) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (error) {
@@ -245,7 +246,7 @@ db.serialize(function () {
     });
     // Создаем базу действий
     total++;
-    db.run("CREATE TABLE actions (\n        \"id\" INTEGER NOT NULL UNIQUE,\n        \"action\" TEXT NOT NULL,\n        \"index\" TEXT NOT NULL,\n        \"defect_id\" INTEGER NOT NULL,\n        FOREIGN KEY (defect_id) REFERENCES defects(id),\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    )", function (error) {
+    db.run("CREATE TABLE actions (\n        \"id\" INTEGER NOT NULL UNIQUE,\n        \"action\" TEXT NOT NULL,\n        \"index\" TEXT NOT NULL,\n        \"defect_id\" INTEGER NOT NULL,\n        \"meta\" TEXT,\n        FOREIGN KEY (defect_id) REFERENCES defects(id),\n        PRIMARY KEY (\"id\" AUTOINCREMENT)\n    )", function (error) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (error) {
@@ -383,7 +384,7 @@ db.serialize(function () {
     });
     // Создаем БД организаций
     total++;
-    db.run("CREATE TABLE \"organiztions\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"city\"\tTEXT NOT NULL,\n        PRIMARY KEY(\"id\" AUTOINCREMENT)\n    );", function (err) {
+    db.run("CREATE TABLE \"organiztions\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"name\"\tTEXT NOT NULL,\n        \"city\"\tTEXT NOT NULL,\n        \"meta\" TEXT,\n        PRIMARY KEY(\"id\" AUTOINCREMENT)\n    );", function (err) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (err) {
@@ -395,7 +396,7 @@ db.serialize(function () {
     });
     // Создаем БД контрактов
     total++;
-    db.run("CREATE TABLE \"contracts\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"number\"\tTEXT NOT NULL,\n        \"date\"\tTEXT NOT NULL,\n        \"organiztion_id\"\tINTEGER,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (organiztion_id) REFERENCES organiztions(id)\n    );", function (err) {
+    db.run("CREATE TABLE \"contracts\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"number\"\tTEXT NOT NULL,\n        \"date\"\tTEXT NOT NULL,\n        \"organiztion_id\"\tINTEGER,\n        \"meta\" TEXT,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (organiztion_id) REFERENCES organiztions(id)\n    );", function (err) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (err) {
@@ -407,7 +408,7 @@ db.serialize(function () {
     });
     // Создаем БД устройств в ремонте
     total++;
-    db.run("CREATE TABLE \"repair_devices\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"contract_id\"\tINTEGER NOT NULL,\n        \"device_id\"\tINTEGER NOT NULL,\n        \"create_time\"\tINTEGER NOT NULL,\n        \"change_time\"\tINTEGER NOT NULL,\n        \"repair_number\"\tINTEGER NOT NULL,\n        \"serial_number\"\tTEXT NOT NULL,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (\"contract_id\") REFERENCES contracts(id),\n        FOREIGN KEY (\"device_id\") REFERENCES defects(id)\n    );", function (err) {
+    db.run("CREATE TABLE \"repair_devices\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"contract_id\"\tINTEGER NOT NULL,\n        \"device_id\"\tINTEGER NOT NULL,\n        \"create_time\"\tINTEGER NOT NULL,\n        \"change_time\"\tINTEGER NOT NULL,\n        \"repair_number\"\tINTEGER NOT NULL,\n        \"serial_number\"\tTEXT NOT NULL,\n        \"meta\" TEXT,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (\"contract_id\") REFERENCES contracts(id),\n        FOREIGN KEY (\"device_id\") REFERENCES defects(id)\n    );", function (err) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (err) {
@@ -417,9 +418,20 @@ db.serialize(function () {
             console.log("\u0421\u043E\u0437\u0434\u0430\u043D\u0430 \u0442\u0430\u0431\u043B\u0438\u0446\u0430 \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432 \u0432 \u0440\u0435\u043C\u043E\u043D\u0442\u0435");
         }
     });
+    // Создаем БД примечаний
+    db.run("CREATE TABLE repair_notes (\n        \"id\" INTEGER NOT NULL,\n        \"text\" TEXT NOT NULL,\n        \"date\" INTEGER NOT NULL,\n        \"repair_device_id\" INTEGER NOT NULL,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (\"repair_device_id\") REFERENCES repair_devices(\"id\")\n        );", function (err) {
+        complite++;
+        console.log("".concat(complite, " \u0438\u0437 ").concat(total));
+        if (err) {
+            console.log("\u041E\u0448\u0438\u0431\u043A\u0430 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u044F \u0442\u0430\u0431\u043B\u0438\u0446\u044B \u043F\u0440\u0438\u043C\u0435\u0447\u0430\u043D\u0438\u0439");
+        }
+        else {
+            console.log("\u0421\u043E\u0437\u0434\u0430\u043D\u0430 \u0442\u0430\u0431\u043B\u0438\u0446\u0430 \u043F\u0440\u0438\u043C\u0435\u0447\u0430\u043D\u0438\u0439");
+        }
+    });
     // Создаем БД блоков в ремонте
     total++;
-    db.run("CREATE TABLE \"repair_blocks\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"block_id\"\tINTEGER NOT NULL,\n        \"serial_number\"\tTEXT NOT NULL,\n        \"count\"\tREAL NOT NULL,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (\"block_id\") REFERENCES blocks(id)\n    );", function (err) {
+    db.run("CREATE TABLE \"repair_blocks\" (\n        \"id\"\tINTEGER NOT NULL UNIQUE,\n        \"block_id\"\tINTEGER NOT NULL,\n        \"serial_number\"\tTEXT NOT NULL,\n        \"count\"\tREAL NOT NULL,\n        \"meta\" TEXT,\n        PRIMARY KEY(\"id\" AUTOINCREMENT),\n        FOREIGN KEY (\"block_id\") REFERENCES blocks(id)\n    );", function (err) {
         complite++;
         console.log("".concat(complite, " \u0438\u0437 ").concat(total));
         if (err) {
@@ -502,6 +514,18 @@ db.serialize(function () {
                 else {
                     console.log("\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043E \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u043E \u0440\u0435\u043C\u043E\u043D\u0442\u0430 ".concat(repairNumber, " ").concat(repairDevicesIDs, " ").concat(deviceID, " ").concat(serialNumber));
                 }
+            });
+            RepairDevice.notes.forEach(function (Note) {
+                var text = Note.text, date = Note.date;
+                noteID++;
+                db.run("INSERT INTO repair_notes (\"id\", \"text\", \"date\", \"repair_device_id\") VALUES (?, ?, ?, ?)", [noteID, text, date, deviceID], function (result, error) {
+                    if (error) {
+                        console.log("\u041E\u0448\u0438\u0431\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0438\u044F \u043F\u0440\u0438\u043C\u0435\u0447\u0430\u043D\u0438\u0435 \u043A \u0440\u0435\u043C\u043E\u043D\u0442\u0443", noteID, text, date, deviceID);
+                    }
+                    else {
+                        console.log("\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043E \u043F\u0440\u0438\u043C\u0435\u0447\u0430\u043D\u0438\u0435 \u043A \u0440\u0435\u043C\u043E\u043D\u0442\u0443", noteID, text, date, deviceID);
+                    }
+                });
             });
             subDevices.forEach(function (Block) {
                 var subDeviceKey = Block.subDeviceKey, serialNumber = Block.serialNumber, count = Block.count, defects = Block.defects;

@@ -19,10 +19,17 @@ export type repairDeviceJSON = {
     createTime: number;
     changeTime: number;
     deviceKey: string;
+    divided: boolean;
+    notes: repairNote[]
     repairNumber: number;
     serialNumber: string;
     subDevices: repairBlockJSON[];
 };
+export type repairNote = {
+    key: string,
+    text: string;
+    date: number,
+}
 export type contractJSON = {
     organizationName: string;
     contractDate: string;

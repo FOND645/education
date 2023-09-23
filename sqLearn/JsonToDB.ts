@@ -3,6 +3,7 @@ import { sqlite3 } from "sqlite3";
 const sqlite: sqlite3 = require("sqlite3");
 const fs = require("fs");
 import { dataBaseJSON } from "./types";
+import { error } from "console";
 
 function getCurrentDateTime() {
     const now = new Date();
@@ -39,6 +40,7 @@ let defectsIDs: idsObject = {
 let actionsIDs: idsObject = {
     count: 0,
 };
+let noteID = -1
 let organiztionsIDs = [
     {
         name: "144 БТРЗ",
@@ -87,6 +89,7 @@ db.serialize(() => {
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL,
         "unit"	TEXT NOT NULL,
+        "meta" TEXT,
         PRIMARY KEY("id" AUTOINCREMENT)
     );`,
         (err) => {
@@ -124,6 +127,7 @@ db.serialize(() => {
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL,
         "decimal"	TEXT NOT NULL,
+        "meta" TEXT,
         PRIMARY KEY ("id" AUTOINCREMENT)
     );`,
         (error) => {
@@ -144,6 +148,8 @@ db.serialize(() => {
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL,
         "decimal"	TEXT NOT NULL,
+        "is_leading"   INTEGER,
+        "meta" TEXT,
         PRIMARY KEY ("id" AUTOINCREMENT)
     );`,
         (error) => {
@@ -208,7 +214,7 @@ db.serialize(() => {
         blocksIDs.count++;
 
         total++
-        db.run("INSERT INTO blocks (id, name, decimal) VALUES (?, ?, ?)", [deviceBlockID, name, decimal], (error) => {
+        db.run("INSERT INTO blocks (id, name, decimal, is_leading) VALUES (?, ?, ?, ?)", [deviceBlockID, name, decimal, 1], (error) => {
 
             complite++
             console.log(`${complite} из ${total}`)
@@ -292,6 +298,7 @@ db.serialize(() => {
         "defect" TEXT,
         "solution" TEXT,
         "block_id" INTEGER NOT NULL,
+        "meta" TEXT,
         FOREIGN KEY (block_id) REFERENCES blocks(id),
         PRIMARY KEY ("id" AUTOINCREMENT)
     )`,
@@ -315,6 +322,7 @@ db.serialize(() => {
         "action" TEXT NOT NULL,
         "index" TEXT NOT NULL,
         "defect_id" INTEGER NOT NULL,
+        "meta" TEXT,
         FOREIGN KEY (defect_id) REFERENCES defects(id),
         PRIMARY KEY ("id" AUTOINCREMENT)
     )`,
@@ -479,6 +487,7 @@ db.serialize(() => {
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL,
         "city"	TEXT NOT NULL,
+        "meta" TEXT,
         PRIMARY KEY("id" AUTOINCREMENT)
     );`, (err) => {
         complite++
@@ -498,6 +507,7 @@ db.serialize(() => {
         "number"	TEXT NOT NULL,
         "date"	TEXT NOT NULL,
         "organiztion_id"	INTEGER,
+        "meta" TEXT,
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY (organiztion_id) REFERENCES organiztions(id)
     );`, (err) => {
@@ -521,6 +531,7 @@ db.serialize(() => {
         "change_time"	INTEGER NOT NULL,
         "repair_number"	INTEGER NOT NULL,
         "serial_number"	TEXT NOT NULL,
+        "meta" TEXT,
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY ("contract_id") REFERENCES contracts(id),
         FOREIGN KEY ("device_id") REFERENCES defects(id)
@@ -534,14 +545,32 @@ db.serialize(() => {
         }
     })
 
-    // Создаем БД блоков в ремонте
+    // Создаем БД примечаний
+    db.run(`CREATE TABLE repair_notes (
+        "id" INTEGER NOT NULL,
+        "text" TEXT NOT NULL,
+        "date" INTEGER NOT NULL,
+        "repair_device_id" INTEGER NOT NULL,
+        PRIMARY KEY("id" AUTOINCREMENT),
+        FOREIGN KEY ("repair_device_id") REFERENCES repair_devices("id")
+        );`, (err) => {
+            complite++
+            console.log(`${complite} из ${total}`)
+            if (err) {
+                console.log(`Ошибка создания таблицы примечаний`);
+            } else {
+                console.log(`Создана таблица примечаний`)
+            }
+        })
 
+    // Создаем БД блоков в ремонте
     total++
     db.run(`CREATE TABLE "repair_blocks" (
         "id"	INTEGER NOT NULL UNIQUE,
         "block_id"	INTEGER NOT NULL,
         "serial_number"	TEXT NOT NULL,
         "count"	REAL NOT NULL,
+        "meta" TEXT,
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY ("block_id") REFERENCES blocks(id)
     );`, (err) => {
@@ -641,6 +670,22 @@ db.serialize(() => {
                         console.log(`Добавлено устройство ремонта ${repairNumber} ${repairDevicesIDs} ${deviceID} ${serialNumber}`)
                     }
                 })
+
+
+            RepairDevice.notes.forEach((Note) => {
+                const {text, date} = Note
+                noteID++
+                db.run(`INSERT INTO repair_notes ("id", "text", "date", "repair_device_id") VALUES (?, ?, ?, ?)`, [noteID, text, date, deviceID], (result: [], error: Error | null) => {
+                    if (error) {
+                        console.log(`Ошибка добавления примечание к ремонту`, noteID, text, date, deviceID)
+                    } else {
+                        console.log(`Добавлено примечание к ремонту`, noteID, text, date, deviceID)
+                    }
+                })
+            })
+
+
+
             subDevices.forEach(Block => {
                 const { subDeviceKey, serialNumber, count, defects } = Block
                 const blockKey = Block.key
